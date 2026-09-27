@@ -12,3 +12,5 @@ env/
 .coverage
 htmlcov/
 *.log
+node_modules/
+frontend/dist/
