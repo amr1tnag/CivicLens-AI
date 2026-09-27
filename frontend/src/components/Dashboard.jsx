@@ -3,6 +3,13 @@ import { getDashboardStats, listComplaints, updateStatus } from "../api";
 
 const STATUSES = ["Open", "In Progress", "Resolved"];
 
+const URGENCY_TONE = {
+  Critical: "urgency-critical",
+  High: "urgency-high",
+  Medium: "urgency-medium",
+  Low: "urgency-low",
+};
+
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [complaints, setComplaints] = useState([]);
@@ -47,9 +54,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="panel">
+    <div className="panel panel-corners">
       <div className="dashboard-header">
-        <h2>Staff triage dashboard</h2>
+        <div>
+          <span className="sheet-no">OPS 02</span>
+          <h2>Staff triage dashboard</h2>
+        </div>
         <button type="button" className="secondary" onClick={load} disabled={loading}>
           Refresh
         </button>
@@ -60,9 +70,9 @@ export default function Dashboard() {
       {stats && (
         <div className="stats-row">
           <StatTile label="Total" value={stats.total_complaints} />
-          <StatTile label="Open" value={stats.open_count} />
-          <StatTile label="In progress" value={stats.in_progress_count} />
-          <StatTile label="Resolved" value={stats.resolved_count} />
+          <StatTile label="Open" value={stats.open_count} tone="urgency-high" />
+          <StatTile label="In progress" value={stats.in_progress_count} tone="urgency-medium" />
+          <StatTile label="Resolved" value={stats.resolved_count} tone="urgency-low" />
           <StatTile label="Avg priority" value={stats.average_priority_score} />
         </div>
       )}
@@ -101,7 +111,7 @@ export default function Dashboard() {
       </div>
 
       {loading ? (
-        <p className="muted">Loading...</p>
+        <p className="muted">Loading…</p>
       ) : complaints.length === 0 ? (
         <p className="muted">No complaints match these filters yet.</p>
       ) : (
@@ -119,8 +129,8 @@ export default function Dashboard() {
           </thead>
           <tbody>
             {complaints.map((c) => (
-              <tr key={c.complaint_id}>
-                <td>{c.priority_score.toFixed(1)}</td>
+              <tr key={c.complaint_id} className={URGENCY_TONE[c.final_urgency_level] || ""}>
+                <td className="mono">{c.priority_score.toFixed(1)}</td>
                 <td>{c.category}</td>
                 <td>{c.final_urgency_level}</td>
                 <td>{c.escalated_department || c.department}</td>
@@ -145,9 +155,9 @@ export default function Dashboard() {
   );
 }
 
-function StatTile({ label, value }) {
+function StatTile({ label, value, tone }) {
   return (
-    <div className="stat-tile">
+    <div className={`stat-tile ${tone || ""}`}>
       <span className="stat-value">{value}</span>
       <span className="stat-label">{label}</span>
     </div>
@@ -162,7 +172,7 @@ function Breakdown({ title, items, keyField }) {
         {items.map((item) => (
           <li key={item[keyField]}>
             <span>{item[keyField]}</span>
-            <span className="muted">{item.count}</span>
+            <span className="mono muted">{item.count}</span>
           </li>
         ))}
       </ul>
